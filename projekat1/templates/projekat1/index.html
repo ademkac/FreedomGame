@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freedom</title>
+</head>
+<body>
+    <div style="margin-top: auto; margin-bottom: auto; text-align: center;">
+        <h1 style=" color: lightsalmon;">Freedom!</h1>
+    </div>
+    <div style="width: 80%;
+    margin: auto;
+    padding: 10px;">
+        <div style="float: left;">
+            <canvas 
+            id="grid"
+            width="600"
+            height="600"
+            style="border: 1px solid #e3900b"></canvas>
+        </div>
+        <div style="margin-left: auto; text-align: center;">
+            <button style="background-color: #e3900b; display: block; color: aliceblue; height: 30px; " onclick="startNewGame()">New Game</button>
+        </div>
+    </div>
+
+    <script>
+
+
+    var cnv = document.getElementById("grid");
+    var elemLeft = cnv.offsetLeft,
+    elemTop = cnv.offsetTop;
+    var ctx = cnv.getContext("2d");
+
+
+    let TEXT_COMP = "Player 2";
+    let TEXT_PLAY = "Player 1";
+    const TEXT_TIE = "NERESENO";
+    const TEXT_WIN = "POBEDA";
+
+//Game Variables
+var scoreComp, scorePlay, playersTurn, currentCells, dozvoljeniPotezi
+var squares = [];
+var odigraniPotezi = [];
+var zauzetaPolja = [];
+var niz1 = [];
+var dozvoljeniPotezi = []
+
+for(let i=0; i<10; i++){
+    squares[i] = []
+    for (let j = 0; j < 10; j++) {
+        squares[i][j] = [i, j];
+        
+    }
+}
+
+console.warn("squares: "+squares);
+
+
+
+ 
+
+ function startNewGame(){
+    playersTurn = true
+    drawGrid();
+
+} 
+
+
+cnv.addEventListener('click', on_canvas_click, false);
+
+
+
+function on_canvas_click(ev){
+    var x = ev.pageX - cnv.offsetLeft;
+    var y = ev.pageY - cnv.offsetTop;
+    if(y>=0 && y <= y+60) {
+        var indexOfX = Math.floor(x/60);
+        var indexOfY = Math.floor(y/60);
+        console.log("indexOfX: "+indexOfX);
+        console.log("indexOfY: "+indexOfY);
+
+        let lastMove = niz1[0];
+        var Cifre = (""+lastMove).split("");
+        console.log("brojevi odigranog poteza: "+Cifre[0]+Cifre[1]);
+        console.warn("lastMove: "+lastMove)
+        console.log("zauzeta polja: "+zauzetaPolja)
+
+         dozvoljeniPotezi = zauzetaPolja.filter(move => {
+            var pom = (""+move).split("");
+            if((pom[0]-Cifre[0] == 1 || pom[0]-Cifre[0] == 0 || pom[0] - Cifre[0] == -1)&&(pom[1]-Cifre[1]==1 || pom[1]-Cifre[1] == 0 || pom[1]-Cifre[1] == -1 )){
+                return move;
+            }
+         }) 
+         
+        console.log("dozvoljeni potezi: "+dozvoljeniPotezi);
+        console.log("duzina niza: "+dozvoljeniPotezi.length)
+
+         if(zauzetaPolja.find(move => move == ""+indexOfX+indexOfY)){
+             alert("To polje je vec popunjeno");
+             return
+         } else {
+            if(lastMove == null ||
+             ((indexOfX-Cifre[0] == 0 || indexOfX-Cifre[0] == 1  || indexOfX-Cifre[0] == -1) && (indexOfY-Cifre[1] == 0 || indexOfY-Cifre[1] == 1 || indexOfY-Cifre[1] == -1))){
+            squares[indexOfX].splice(indexOfY, 1);
+            odigraniPotezi.push(""+indexOfX+indexOfY);
+            zauzetaPolja.push(""+indexOfX+indexOfY);
+             niz1 = odigraniPotezi.reverse()
+            console.log(odigraniPotezi);
+            ctx.fillStyle = playersTurn?"black":"white";
+            ctx.beginPath();
+            ctx.arc(indexOfX * 60 + 30, indexOfY * 60 +30, 30, 0, 2 * Math.PI, false);
+            ctx.fill();
+        }else{
+            if((dozvoljeniPotezi.length == 4 || dozvoljeniPotezi.length == 6 || dozvoljeniPotezi.length == 9)){
+                squares[indexOfX].splice(indexOfY, 1);
+                odigraniPotezi.push(""+indexOfX+indexOfY);
+                zauzetaPolja.push(""+indexOfX+indexOfY);
+                niz1 = odigraniPotezi.reverse()
+                ctx.fillStyle = playersTurn?"black":"white";
+                ctx.beginPath();
+                ctx.arc(indexOfX * 60 + 30, indexOfY * 60 +30, 30, 0, 2 * Math.PI, false);
+                ctx.fill();
+            }else{
+                alert("Molimo vas odigrajte figuru pored vaseg protivnika.")
+                return;
+            }
+        }
+    }
+
+
+        
+
+        
+
+    }
+    playersTurn = !playersTurn
+}
+
+
+
+function getArrayOfMoves(col, row){
+    
+}
+
+function drawGrid(){
+
+    ctx.fillStyle = "#e3900b"
+    ctx.fillRect(0, 0, 600, 600);
+
+    for (var y = 0; y <= 600; y += 60) {
+    strokeLine(ctx, 0, y, 600, y, 'black');
+    }
+
+    for (var x = 0; x <= 600; x += 60) {
+    strokeLine(ctx, x, 0, x, 600, 'black');
+    }
+}
+
+
+
+function strokeLine(ctx, x0, y0, x1, y1, color) {
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.moveTo(x0, y0);
+    ctx.lineTo(x1, y1);
+    ctx.stroke();
+    ctx.closePath();
+}
+
+
+    </script>
+
+</body>
+</html>
