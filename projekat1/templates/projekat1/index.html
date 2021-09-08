@@ -4,30 +4,54 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
     <title>Freedom</title>
 </head>
-<body>
+<body >
     <div style="margin-top: auto; margin-bottom: auto; text-align: center;">
         <h1 style=" color: lightsalmon;">Freedom!</h1>
     </div>
-    <div style="width: 80%;
+    <div style="width: 90%;
     margin: auto;
     padding: 10px;">
         <div style="float: left;">
-            <canvas 
+<!--             <p style="display: inline-block; color: black; font-size: medium; margin-right: 20px;">Beli igrac </p><p style="display: inline-block; color: black; font-size: medium; float: right;">Crni igrac</p>
+ -->            <p id="paragraf" style="letter-spacing:54px; margin-left: 30px; "></p> <!-- nastavice -->
+            <div style="display: block;">
+                <p style="flex-direction: column; margin-bottom: 30px;  display: inline-block; line-height: 63px;" id="paragraf1"></p>
+                <canvas 
             id="grid"
             width="600"
             height="600"
-            style="border: 1px solid #e3900b"></canvas>
+            style="border: 1px solid #e3900b; display: inline-block;"></canvas>
+            </div>
         </div>
-        <div style="margin-left: auto; text-align: center;">
-            <button style="background-color: #e3900b; display: block; color: aliceblue; height: 30px; " onclick="startNewGame()">New Game</button>
+        <div id="izbor" style="margin-left: 50px; margin-top: 60px; text-align: center; float: left;">
+            <button style="background-color: #e3900b; display: block; color: aliceblue; height: 30px; margin-left: 60px; " onclick="startNewGame()">Nova igra</button>
+              <h3>Molimo vas odaberite</h3>
+              <input type="radio"  name="nacinIgre" value="ivsi" style="float: left;" checked="checked">
+              <label for="ivsi">Igrac protiv igraca</label><br>
+              <h4>Igrac protiv kompjutera:</h4>
+              <input type="radio"  name="nacinIgre" value="laki" style="float: left;">
+              <label for="laki" style="display: inline-block;">Laki</label><br>
+              <input type="radio"  name="nacinIgre" value="srednji" style="float: left;">
+              <label for="srednji">Srednji</label><br>
+              <input type="radio"  name="nacinIgre" value="teski" style="float: left;">
+              <label for="teski">Teski</label><br>
+              <h4>Kompjuter protiv kompjutera:</h4>
+              <input type="radio"  name="nacinIgre" value="cvsc" style="float: left;">
+              <label for="cvsc">Komp vs Komp</label><br>
+
+            <h3 style="text-align: center; margin-top: 30px;">Skor</h3>
+            <p style="display: inline-block; float: left; color: #e3900b;">Beli igrac</p><p style="display: inline-block; float: right; color: #e3900b;">Crni igrac</p><br>
+            <p id="skorBeli" style="display: inline-block; float: left; margin-top: 50px; margin-left: 0; font-size: 30px;"></p><p id="skorCrni" style="display: inline-block; margin-top: 50px; float: right; margin-left: 0; font-size: 30px;"></p>
         </div>
+        <div id="listaPoteza" style="width: 360px; height: 600px; background-color: #e3900b; float: left; margin-left: 50px; margin-top: 60px; color: #f2f7f4; overflow: scroll;"></div>
     </div>
 
     <script>
 
-
+       
     var cnv = document.getElementById("grid");
     var elemLeft = cnv.offsetLeft,
     elemTop = cnv.offsetTop;
@@ -40,12 +64,17 @@
     const TEXT_WIN = "POBEDA";
 
 //Game Variables
-var scoreComp, scorePlay, playersTurn, currentCells, dozvoljeniPotezi
+var scoreComp, scorePlay, playersTurn, currentCells, dozvoljeniPotezi, vrstaIgre
 var squares = [];
 var odigraniPotezi = [];
 var zauzetaPolja = [];
 var niz1 = [];
-var dozvoljeniPotezi = []
+var dozvoljeniPotezi = [];
+var poljaPoIvicama = [10, 20, 30, 40, 50, 60, 70, 80, 01, 02, 03, 04, 05, 06, 07, 08,,
+19, 29, 39, 49, 59, 69, 79, 89, 91, 92, 93, 94, 95, 96, 97, 98];
+var coskovi = [00, 90, 09, 99];
+var poteziBelogIgraca = [];
+var poteziCrnogIgraca = []
 
 for(let i=0; i<10; i++){
     squares[i] = []
@@ -55,15 +84,76 @@ for(let i=0; i<10; i++){
     }
 }
 
+var par = document.getElementById("paragraf");
+        for (let i = 0; i <= 9; i++) {
+            par.innerHTML += i
+            
+        }
+
+    var par1 = document.getElementById("paragraf1");
+        for (let j = 0; j <=9; j++) {
+            par1.innerHTML += j+"<br>"
+            
+        }
+
 console.warn("squares: "+squares);
 
-
+var lista = document.getElementById("listaPoteza");
 
  
 
  function startNewGame(){
+    
+
+     squares = [];
+     odigraniPotezi = [];
+     zauzetaPolja = [];
+     niz1 = [];
+     dozvoljeniPotezi = [];
+
+     poteziBelogIgraca = [];
+     poteziCrnogIgraca = []
+
+    for(let i=0; i<10; i++){
+        squares[i] = []
+        for (let j = 0; j < 10; j++) {
+            squares[i][j] = [i, j];
+            
+        }
+    }
+
+    lista.innerHTML = '';
+
+    console.warn("squares nakon klika nova igra: "+squares);
     playersTurn = true
     drawGrid();
+    var radio = document.getElementsByName('nacinIgre');
+    for(let i = 0; i<radio.length; i++){
+        if(radio[i].checked)
+        vrstaIgre = radio[i].value;
+    }
+    var skorBel = document.getElementById('skorBeli')
+    var skorCr = document.getElementById('skorCrni')
+
+    skorBel.innerHTML = 0
+    skorCr.innerHTML = 0
+    ////////////////////////ajax//////////////////////////////
+    /* $.ajax(
+                {
+                    type: "GET",
+                    url: 'sendstate1',
+                    data:{
+                        "vrstaIgre": vrstaIgre
+                    },
+                    dataType: "json",
+                    success: (data)=>{
+                        console.log("Uspesno odradjeno")
+                    },
+                    error: ()=>{
+                        alert("Greska u slanju")
+                    }
+                }
+            ) */
 
 } 
 
@@ -103,25 +193,103 @@ function on_canvas_click(ev){
          } else {
             if(lastMove == null ||
              ((indexOfX-Cifre[0] == 0 || indexOfX-Cifre[0] == 1  || indexOfX-Cifre[0] == -1) && (indexOfY-Cifre[1] == 0 || indexOfY-Cifre[1] == 1 || indexOfY-Cifre[1] == -1))){
+            
+            //izbacuje potez koji je odigran iz gamestate
             squares[indexOfX].splice(indexOfY, 1);
+
+            //ubacuje u niz odigrane poteze od strane oba igraca
             odigraniPotezi.push(""+indexOfX+indexOfY);
+
+            //zauzeta polja tj. polja koja su vec popunjena
             zauzetaPolja.push(""+indexOfX+indexOfY);
-             niz1 = odigraniPotezi.reverse()
-            console.log(odigraniPotezi);
-            ctx.fillStyle = playersTurn?"black":"white";
+            niz1 = odigraniPotezi.reverse();
+
+            //pamtim poteze i igraca koji odigrao potez
+            playersTurn? poteziBelogIgraca.push(""+indexOfX+indexOfY)
+                       : poteziCrnogIgraca.push(""+indexOfX+indexOfY)
+            console.log("potezi belog igraca: "+poteziBelogIgraca)
+            console.log("potezi crnog igraca: "+poteziCrnogIgraca)
+
+            //crta figuru na tabli
+            ctx.fillStyle = playersTurn?"white":"black";
             ctx.beginPath();
             ctx.arc(indexOfX * 60 + 30, indexOfY * 60 +30, 30, 0, 2 * Math.PI, false);
             ctx.fill();
+
+            //ubacujem u listu poteza tekst koji igrac i na koje polje je odigrao potez
+            lista.innerHTML += playersTurn?"Beli igrac odigrao potez na kordinatama: x= "+indexOfX+" i y= "+indexOfY+"<br>"
+                                          :"Crni igrac odigrao potez na kordinatama: x= "+indexOfX+" i y= "+indexOfY+"<br>"
+            
+           /////////////////AJAX///////////////////////
+            /* $.ajax(
+                {
+                    type: "GET",
+                    url: 'sendstate',
+                    data:{
+                        "indexOfX": indexOfX,
+                        "indexOfY": indexOfY,
+                        "poteziBelogIgraca": poteziBelogIgraca,
+                        "poteziCrnogIgraca": poteziCrnogIgraca
+                    },
+                    dataType: "json",
+                    success: (data)=>{
+                        squares[data.x].splice(data.y, 1);
+                        odigraniPotezi.push(""+data.x+data.y);
+                        zauzetaPolja.push(""+data.x+data.y);
+                        niz1 = odigraniPotezi.reverse()
+                        console.log(odigraniPotezi);
+                        ctx.fillStyle = playersTurn?"black":"white";
+                        ctx.beginPath();
+                        ctx.arc(data.x * 60 + 30, data.y * 60 +30, 30, 0, 2 * Math.PI, false);
+                        ctx.fill();
+                    },
+                    error: ()=>{
+                        alert("Greska u slanju")
+                    }
+                }
+            ) */ 
         }else{
-            if((dozvoljeniPotezi.length == 4 || dozvoljeniPotezi.length == 6 || dozvoljeniPotezi.length == 9)){
+            //proverava da li je zadnji potez ima 3 suseda ili 5 suseda ili 8 suseda
+            if(((coskovi.find(move=>move == lastMove) == lastMove && dozvoljeniPotezi.length == 4) || poljaPoIvicama.find(move=>move==lastMove) ==lastMove && dozvoljeniPotezi.length == 6 || dozvoljeniPotezi.length == 9)){
                 squares[indexOfX].splice(indexOfY, 1);
                 odigraniPotezi.push(""+indexOfX+indexOfY);
                 zauzetaPolja.push(""+indexOfX+indexOfY);
                 niz1 = odigraniPotezi.reverse()
-                ctx.fillStyle = playersTurn?"black":"white";
+                ctx.fillStyle = playersTurn?"white":"black";
                 ctx.beginPath();
                 ctx.arc(indexOfX * 60 + 30, indexOfY * 60 +30, 30, 0, 2 * Math.PI, false);
                 ctx.fill();
+
+                lista.innerHTML += playersTurn?"Beli igrac odigrao potez na kordinatama: x= "+indexOfX+" i y= "+indexOfY+"<br>"
+                                          :"Crni igrac odigrao potez na kordinatama: x= "+indexOfX+" i y= "+indexOfY+"<br>"
+                /////////////////////////////////ajax/////////////////////////////////////////////
+                /* $.ajax(
+                {
+                    type: "GET",
+                    url: 'sendstate',
+                    data:{
+                        "indexOfX": indexOfX,
+                        "indexOfY": indexOfY,
+                        "poteziBelogIgraca": poteziBelogIgraca,
+                        "poteziCrnogIgraca": poteziCrnogIgraca
+                    },
+                    dataType: "json",
+                    success: (data)=>{
+                        squares[data.x].splice(data.y, 1);
+                        odigraniPotezi.push(""+data.x+data.y);
+                        zauzetaPolja.push(""+data.x+data.y);
+                        niz1 = odigraniPotezi.reverse()
+                        console.log(odigraniPotezi);
+                        ctx.fillStyle = playersTurn?"black":"white";
+                        ctx.beginPath();
+                        ctx.arc(data.x * 60 + 30, data.y * 60 +30, 30, 0, 2 * Math.PI, false);
+                        ctx.fill();
+                    },
+                    error: ()=>{
+                        alert("Greska u slanju")
+                    }
+                }
+            ) */ 
             }else{
                 alert("Molimo vas odigrajte figuru pored vaseg protivnika.")
                 return;
@@ -129,20 +297,10 @@ function on_canvas_click(ev){
         }
     }
 
-
-        
-
-        
-
     }
     playersTurn = !playersTurn
 }
 
-
-
-function getArrayOfMoves(col, row){
-    
-}
 
 function drawGrid(){
 
