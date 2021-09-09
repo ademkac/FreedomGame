@@ -19,7 +19,6 @@ from projekat1 import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', views.home),
-    path('index', include('projekat1.urls')),
+    path('', include('projekat1.urls')),
     
 ]
