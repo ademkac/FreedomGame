@@ -20,15 +20,20 @@ def index(request):
 
 def sendstate(request):
 
-    """ indexOfX = request.GET.get("indexOfX", "None")
+    indexOfX = request.GET.get("indexOfX", "None")
     indexOfY = request.GET.get("indexOfY", "None")
-    logging.warn("index of x: " + indexOfX)
+    poteziBelog = request.GET.getlist("poteziBelogIgraca[]")
+    poteziCrnog = request.GET.getlist("poteziCrnogIgraca[]") 
+    logging.warn("potezibelog: " + poteziBelog)
+
+    print(poteziBelog)
+    
     data = {
         'x': indexOfX,
         'y': 3
-    } """
+    } 
 
-    return JsonResponse(""" data """)
+    return JsonResponse(data)
 
 def sendstate1(request):
 
