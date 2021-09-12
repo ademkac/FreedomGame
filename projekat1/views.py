@@ -8,7 +8,7 @@ from collections import deque
 
 
 # Create your views here.
-
+from projekat1.minmaxutils import generate_next_move
 
 
 def home(request):
@@ -18,25 +18,46 @@ def home(request):
 def index(request):
     return render(request, 'projekat1/index.html')
 
-def sendstate(request):
 
-    indexOfX = request.GET.get("indexOfX", "None")
+def sendstate(request):
+    """indexOfX = request.GET.get("indexOfX", "None")
     indexOfY = request.GET.get("indexOfY", "None")
     poteziBelog = request.GET.getlist("poteziBelogIgraca[]")
-    poteziCrnog = request.GET.getlist("poteziCrnogIgraca[]") 
-    logging.warn("potezibelog: " + poteziBelog)
+    poteziCrnog = request.GET.getlist("poteziCrnogIgraca[]")
+    # logging.warn("potezibelog: " + poteziBelog)
 
-    print(poteziBelog)
-    
+    print("Potezi bijelogg  ", poteziBelog)
+    print("Potezi crnog  ", poteziCrnog)
     data = {
         'x': indexOfX,
         'y': 3
-    } 
+    }"""
+    my_positions = request.GET.getlist("poteziCrnogIgraca[]", [])
+
+    oponents_positions = request.GET.getlist("poteziBelogIgraca[]", "None")
+
+
+    oponents_positions = [[int(oponents_positions[i+1]), int(oponents_positions[i])] for i in range(0, len(oponents_positions), 2)]
+    my_positions = [[int(my_positions[i+1]), int(my_positions[i])] for i in range(0, len(my_positions), 2)]
+
+
+    x = request.GET.get("indexOfX", "None")
+    y = request.GET.get("indexOfY", "None")
+    last_move = [int(y), int(x)]
+    """print("pozicije bijelog ", oponents_positions)
+    print("pozicije crnog ", my_positions)
+    print("poslednji potez ", last_move)"""
+    move = generate_next_move(my_positions, oponents_positions, last_move)
+
+    data = {
+        'x': move[1],
+        'y': move[0]
+    }
 
     return JsonResponse(data)
 
-def sendstate1(request):
 
+def sendstate1(request):
     """ vrstaIgre = request.GET.get("vrstaIgre", "None")
     logging.warn("Nacin igre: " + vrstaIgre) """
 
