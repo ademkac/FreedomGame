@@ -19,20 +19,9 @@ def home(request):
 def index(request):
     return render(request, 'projekat1/index.html')
 
-
+""" ovde je teski nivo """
 def sendstate(request):
-    """indexOfX = request.GET.get("indexOfX", "None")
-    indexOfY = request.GET.get("indexOfY", "None")
-    poteziBelog = request.GET.getlist("poteziBelogIgraca[]")
-    poteziCrnog = request.GET.getlist("poteziCrnogIgraca[]")
-    # logging.warn("potezibelog: " + poteziBelog)
-
-    print("Potezi bijelogg  ", poteziBelog)
-    print("Potezi crnog  ", poteziCrnog)
-    data = {
-        'x': indexOfX,
-        'y': 3
-    }"""
+    
     my_positions = request.GET.getlist("poteziCrnogIgraca[]", [])
 
     oponents_positions = request.GET.getlist("poteziBelogIgraca[]", "None")
@@ -57,23 +46,23 @@ def sendstate(request):
 
     return JsonResponse(data)
 
-
+""" ovde je srednji nivo """
 def sendstate1(request):
-    vrstaIgre = request.GET.get("vrstaIgre", "None")
-    logging.warn("Nacin igre: " + vrstaIgre) 
     data = {
-        "uspesno": "odradjeno"
+        'x': 1,
+        'y': 1
     }
 
     return JsonResponse( data )
 
+""" ovde je kompjuter protiv kompjutera """
 def sendstate2(request):
     koIgra= request.GET.get("comp1ORcomp2", "None")
     print(koIgra)
-    """ if vrstaIgre == "cvsc":
+    if vrstaIgre == "cvsc":
         print("vrsta igre je cvsc")
     elif vrstaIgre == "ivsi":
-        print("vrsta igre je ivsi") """
+        print("vrsta igre je ivsi") 
     print(vrstaIgre)
     data = {
         "x": 0,
@@ -81,3 +70,11 @@ def sendstate2(request):
     }
 
     return JsonResponse(data)
+
+""" ovde je laki nivo """
+def sendstate3(request):
+    data={
+        'x': 1,
+        'y': 0
+    }
+    return JsonResponse( data)
