@@ -45,6 +45,9 @@
             <h3 style="text-align: center; margin-top: 30px;">Skor</h3>
             <p style="display: inline-block; float: left; color: #e3900b;">Beli igrac</p><p style="display: inline-block; float: right; color: #e3900b;">Crni igrac</p><br>
             <p id="skorBeli" style="display: inline-block; float: left; margin-top: 50px; margin-left: 0; font-size: 30px;"></p><p id="skorCrni" style="display: inline-block; margin-top: 50px; float: right; margin-left: 0; font-size: 30px;"></p>
+            <div id="comp">
+
+            </div>
         </div>
         <div id="listaPoteza" style="width: 360px; height: 600px; background-color: #e3900b; float: left; margin-left: 50px; margin-top: 60px; color: #f2f7f4; overflow: scroll;"></div>
     </div>
@@ -136,8 +139,16 @@ var lista = document.getElementById("listaPoteza");
 
     skorBel.innerHTML = 0
     skorCr.innerHTML = 0
+
+    if(vrstaIgre == "cvsc"){
+        var button =  document.createElement("button");
+       button.innerHTML = "Sledeci potez";
+       button.onclick = saljeZahtev
+       var divButton = document.getElementById("comp");
+       divButton.appendChild(button);
+    }
     ////////////////////////ajax//////////////////////////////
-    /* $.ajax(
+     $.ajax(
                 {
                     type: "GET",
                     url: 'sendstate1',
@@ -146,18 +157,45 @@ var lista = document.getElementById("listaPoteza");
                     },
                     dataType: "json",
                     success: (data)=>{
-                        console.log("Uspesno odradjeno")
+                        console.log(data.uspesno)
                     },
                     error: ()=>{
                         alert("Greska u slanju")
                     }
                 }
-            ) */
+            ) 
 
 } 
 
 
 cnv.addEventListener('click', on_canvas_click, false);
+
+function saljeZahtev(){
+     $.ajax(
+                {
+                    type: "GET",
+                    url: 'sendstate2',
+                    data:{
+                        "comp1ORcomp2": playersTurn?1:2 
+                    },
+                    dataType: "json",
+                    success: (data)=>{
+                        
+                        ctx.fillStyle = playersTurn?"white":"black";
+                        ctx.beginPath();
+                        ctx.arc(data.x * 60 + 30, data.y * 60 +30, 30, 0, 2 * Math.PI, false);
+                        ctx.fill();
+                        lista.innerHTML += playersTurn?"Beli igrac odigrao potez na kordinatama: x= "+data.x+" i y= "+data.y+"<br>"
+                                            :"Crni igrac odigrao potez na kordinatama: x= "+data.x+" i y= "+data.y+"<br>"                        
+                        playersTurn = !playersTurn
+                    },
+                    error: ()=>{
+                        alert("Greska u slanju")
+                    }
+                }
+            ) 
+            console.log("saljem zahtev")
+}
 
 
 
@@ -201,6 +239,14 @@ function on_canvas_click(ev){
                 ctx.arc(indexOfX * 60 + 30, indexOfY * 60 +30, 30, 0, 2 * Math.PI, false);
                 ctx.fill();
 
+                if(playersTurn){
+                    poteziBelogIgraca.push(indexOfX);
+                    poteziBelogIgraca.push(indexOfY)
+                }else{
+                    poteziCrnogIgraca.push(indexOfX);
+                    poteziCrnogIgraca.push(indexOfY);
+                }
+
                 //ubacujem u listu poteza tekst koji igrac i na koje polje je odigrao potez
                 lista.innerHTML += playersTurn?"Beli igrac odigrao potez na kordinatama: x= "+indexOfX+" i y= "+indexOfY+"<br>"
                                             :"Crni igrac odigrao potez na kordinatama: x= "+indexOfX+" i y= "+indexOfY+"<br>"
@@ -237,8 +283,31 @@ function on_canvas_click(ev){
 
         }
         playersTurn = !playersTurn  // ukoliko igraju igrac protiv igraca
+        /* if(odigraniPotezi.length == 100){
+            let parniIndeksi = [];
+            let neparniIndeksi = [];
+            for(let p= 0; p<poteziBelogIgraca.length; p+=2){
+                parniIndeksi.push(poteziBelogIgraca[p])
+            }
+            for(let c= 1; c<poteziBelogIgraca.length; c+=2){
+                neparniIndeksi.push(poteziBelogIgraca[p])
+            }
+            for(let n=0; n<4; n++){
+                for(let l=0; l<9; l++){
 
-    }else{
+                }
+                if(parniIndeksi[n]== parniIndeksi[n+1] && neparniIndeksi[n] == neparniIndeksi[n+1]-1)
+            }
+           
+            alert("Kraj igre!<br> Pobednik je "+scoreComp>scorePlay?"crni igrac":"beli igrac")
+            setTimeout(function(){ alert("Zelite da zapocnete novu igru?"); }, 1000);
+           
+        } */
+
+    }else if(vrstaIgre=="cvsc"){
+       console.log("igraju kompjuteri")
+    }
+    else{
         //////ovde igrac protiv kompjutera
         playersTurn=true
     var x = ev.pageX - cnv.offsetLeft;
@@ -275,21 +344,18 @@ function on_canvas_click(ev){
             zauzetaPolja.push(""+indexOfX+indexOfY);
             niz1 = odigraniPotezi.reverse();
 
-            //pamtim poteze i igraca koji odigrao potez
-
             poteziBelogIgraca.push(indexOfX);
             poteziBelogIgraca.push(indexOfY)
 
-/*             poteziBelogIgraca.push(nizPoteza)
- */            console.log("potezi belog igraca: "+poteziBelogIgraca)
+             console.log("potezi belog igraca: "+poteziBelogIgraca)
             
-
             //crta figuru na tabli
             ctx.fillStyle = "white"
             ctx.beginPath();
             ctx.arc(indexOfX * 60 + 30, indexOfY * 60 +30, 30, 0, 2 * Math.PI, false);
             ctx.fill();
 
+            console.log("poslednji potez belog igraca: "+indexOfX+", "+indexOfY)
             //ubacujem u listu poteza tekst koji igrac i na koje polje je odigrao potez
 
              lista.innerHTML += "Beli igrac odigrao potez na kordinatama: x= "+indexOfX+" i y= "+indexOfY+"<br>"
@@ -316,11 +382,10 @@ function on_canvas_click(ev){
                         ctx.beginPath();
                         ctx.arc(data.x * 60 + 30, data.y * 60 +30, 30, 0, 2 * Math.PI, false);
                         ctx.fill();
-/*                         let nizCrnogIgraca = [];
- */                        poteziCrnogIgraca.push(data.x);
+                        poteziCrnogIgraca.push(data.x);
                         poteziCrnogIgraca.push(data.y);
-/*                         poteziCrnogIgraca.push(nizCrnogIgraca);
- */                        console.log("potezi crnog igraca: "+poteziCrnogIgraca)
+                        console.log("poslednji potez crnog igraca: "+data.x+", "+data.y)
+                        console.log("potezi crnog igraca: "+poteziCrnogIgraca)
                         lista.innerHTML += "Crni igrac odigrao potez na kordinatama: x= "+data.x+" i y= "+data.y+"<br>"
                     },
                     error: ()=>{
@@ -341,21 +406,17 @@ function on_canvas_click(ev){
             zauzetaPolja.push(""+indexOfX+indexOfY);
             niz1 = odigraniPotezi.reverse();
 
-            //pamtim poteze i igraca koji odigrao potez
-
-            let nizPoteza1 = [];
-            nizPoteza1.push(indexOfX);
-            nizPoteza1.push(indexOfY);
-
-            poteziBelogIgraca.push(nizPoteza1)
-            console.log("potezi belog igraca: "+poteziBelogIgraca)
-
-
             //crta figuru na tabli
             ctx.fillStyle = "white"
             ctx.beginPath();
             ctx.arc(indexOfX * 60 + 30, indexOfY * 60 +30, 30, 0, 2 * Math.PI, false);
             ctx.fill();
+
+             //pamtim poteze i igraca koji odigrao potez
+
+            poteziBelogIgraca.push(indexOfX);
+            poteziBelogIgraca.push(indexOfY)
+            console.log("potezi belog igraca: "+poteziBelogIgraca)
 
             lista.innerHTML += "Beli igrac odigrao potez na kordinatama: x= "+indexOfX+" i y= "+indexOfY+"<br>"
 
@@ -377,13 +438,14 @@ function on_canvas_click(ev){
                         odigraniPotezi.push(""+data.x+data.y);
                         zauzetaPolja.push(""+data.x+data.y);
                         niz1 = odigraniPotezi.reverse()
-                        console.log(odigraniPotezi);
                         ctx.fillStyle = "black";
                         ctx.beginPath();
                         ctx.arc(data.x * 60 + 30, data.y * 60 +30, 30, 0, 2 * Math.PI, false);
                         ctx.fill();
                         poteziCrnogIgraca.push(data.x);
                         poteziCrnogIgraca.push(data.y);
+                        console.log("poslednji potez crnog igraca: "+data.x+", "+data.y)
+                        console.log("potezi crnog igraca: "+poteziCrnogIgraca)
                         lista.innerHTML += "Crni igrac odigrao potez na kordinatama: x= "+data.x+" i y= "+data.y+"<br>"
                     },
                     error: ()=>{
