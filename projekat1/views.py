@@ -10,6 +10,7 @@ from collections import deque
 # Create your views here.
 from projekat1.minmaxutils import generate_next_move
 
+vrstaIgre = None
 
 def home(request):
     return render(request, 'projekat1/home.html')
@@ -58,7 +59,25 @@ def sendstate(request):
 
 
 def sendstate1(request):
-    """ vrstaIgre = request.GET.get("vrstaIgre", "None")
-    logging.warn("Nacin igre: " + vrstaIgre) """
+    vrstaIgre = request.GET.get("vrstaIgre", "None")
+    logging.warn("Nacin igre: " + vrstaIgre) 
+    data = {
+        "uspesno": "odradjeno"
+    }
 
-    return JsonResponse(""" data """)
+    return JsonResponse( data )
+
+def sendstate2(request):
+    koIgra= request.GET.get("comp1ORcomp2", "None")
+    print(koIgra)
+    """ if vrstaIgre == "cvsc":
+        print("vrsta igre je cvsc")
+    elif vrstaIgre == "ivsi":
+        print("vrsta igre je ivsi") """
+    print(vrstaIgre)
+    data = {
+        "x": 0,
+        "y": 1
+    }
+
+    return JsonResponse(data)
