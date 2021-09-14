@@ -58,12 +58,18 @@ def sendstate1(request):
 """ ovde je kompjuter protiv kompjutera """
 def sendstate2(request):
     koIgra= request.GET.get("comp1ORcomp2", "None")
+    indX= request.GET.get("indexOfX", "None")
+    indY= request.GET.get("indexOfY", "None")
+
+    pozicijeCrnog = request.GET.getlist("poteziCrnogIgraca[]", [])
+    pozicijeBelog = request.GET.getlist("poteziBelogIgraca[]", [])
+
+    print(indX)
+    print(indY)
     print(koIgra)
-    if vrstaIgre == "cvsc":
-        print("vrsta igre je cvsc")
-    elif vrstaIgre == "ivsi":
-        print("vrsta igre je ivsi") 
-    print(vrstaIgre)
+    print(pozicijeCrnog)
+    print(pozicijeBelog)
+    
     data = {
         "x": 0,
         "y": 1
