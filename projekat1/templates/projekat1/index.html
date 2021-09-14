@@ -651,6 +651,8 @@ function on_canvas_click(ev){
             ctx.beginPath();
             ctx.arc(indexOfX * 60 + 30, indexOfY * 60 +30, 30, 0, 2 * Math.PI, false);
             ctx.fill();
+            poteziBelogIgraca.push(indexOfX);
+            poteziBelogIgraca.push(indexOfY);
 
             console.log("poslednji potez belog igraca: "+indexOfX+", "+indexOfY)
             //ubacujem u listu poteza tekst koji igrac i na koje polje je odigrao potez

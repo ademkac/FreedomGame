@@ -1,3 +1,4 @@
+import random
 
 
 class Node:
@@ -18,7 +19,7 @@ def heuristic(opponent_positions, my_positions):
 
     my_points = sum_points(my_positions, 4)
     opponent_points = sum_points(opponent_positions, 4)
-    return my_points - opponent_points
+    return my_points - 0.98*opponent_points
 
 
 """
@@ -140,12 +141,58 @@ all_moves = [[0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [0, 7], [0,
 
 # generise sledeci potez na osnovu trenutnog stanja tabele, poslednjeg poteza i heuristike
 def generate_next_move(my_positions, opponent_positions, last_opponent_move):
+    print("NOVA TURAA")
     node = minimax(my_positions, opponent_positions, last_opponent_move, 4, -999, 999, True)
-
+    print("PROSLEDJEN POTEZ ", node._move)
     return node._move
+
+"""
+    generise random potez od svih mogucih poteza
+    predvidjena je za laki nivo
+"""
+def generate_random_move(my_positions, opponent_positions, last_opponent_move):
+    my_positions = opponent_positions + my_positions
+    moves = generate_possible_moves(my_positions, last_opponent_move)
+    idx = random.randint(0, len(moves) - 1)
+
+    return moves[idx]
+"""
+
+    generise potez tako da formira 4 ako moze i da blokira ukoliko protivnik pravi 4
+
+"""
+
+def generate_move(my_positions, opponent_positions, last_opponent_move):
+    all_current_positions = opponent_positions + my_positions
+    moves = generate_possible_moves(all_current_positions, last_opponent_move)
+    for position in moves:#trazi se potez koji bi napravio bod ili blokirao protivnika da napravi 4
+        value = sum_points(my_positions,4)
+        possible_positions = [position] + my_positions
+        new_value = sum_points(possible_positions,4)
+        if (new_value - value) > 0:#prvo ako moze nek napravi sebi bod
+            return position
+
+        value = sum_points(opponent_positions, 4)
+        print("vv ", opponent_positions)
+        opponent_possible_positions = opponent_positions + [position]
+
+        new_value = sum_points(opponent_possible_positions,4)
+        if (new_value - value) > 0:#ako ce spreciti protivnika da uzme bod
+            return position
+
+    for position in moves:#uzmi potez bilo koji koji nece smanjiti broj bodova
+        value = sum_points(my_positions, 4)
+        possible_positions = [position] + my_positions
+        new_value = sum_points(possible_positions, 4)
+        if (new_value - value) == 0:  # nece promijeniti sebi broj bodova
+            return position
+
+    idx = random.randint(0, len(moves) - 1)
+    return moves[idx]
 
 
 def generate_possible_moves(gamestate, last_opponent_move):
+    print("GAME STATE ", gamestate)
     possible_moves = []
     x = last_opponent_move[0]
     y = last_opponent_move[1]
@@ -182,7 +229,7 @@ def generate_possible_moves(gamestate, last_opponent_move):
             for j in range(10):
                 if ([i, j] not in gamestate):
                     possible_moves.append([i, j])
-    #print("MOGUCIII POTEZII ", possible_moves)
+    print("MOGUCIII POTEZII ", possible_moves)
     return possible_moves
 
 
@@ -191,7 +238,7 @@ def is_near(first, second):
 
 
 def minimax(my_positions, opponent_positions, last_opponents_move, depth, alpha, beta, maximizingPlayer):
-    """print("-"*15)
+    print("-"*15)
     if maximizingPlayer:
         print("POZICIJE RACUNARA: ", my_positions)
         print( "POZICIJE IGRACA: ",opponent_positions)
@@ -202,29 +249,33 @@ def minimax(my_positions, opponent_positions, last_opponents_move, depth, alpha,
         print("POZICIJE IGRACA: ", my_positions)
         print("RACUNAR ODIGRAO POTEZ: ", last_opponents_move)
 
-    print("-"*15)"""
+    print("-"*15)
 
 
-    if depth == 0:
+    if depth == 0 or (len(my_positions) + len(opponent_positions)) == 100 :
         return Node(last_opponents_move, heuristic(opponent_positions, my_positions))
 
     if maximizingPlayer:
         maxEval = Node(None, -999)
         positions = generate_possible_moves(my_positions + opponent_positions, last_opponents_move)
         for position in positions:
-
-
-
             eval = minimax(opponent_positions, my_positions + [position], position, depth - 1, alpha, beta, False)
+            if (len(my_positions) + len(opponent_positions)) == 99:
+                if (heuristic(opponent_positions, my_positions) > eval._value):
+                    eval._move = [-1, -1]
+                    eval._value = heuristic(opponent_positions, my_positions)
+                    print("1338")
 
             if eval._value > maxEval._value:
-                maxEval._move = position
+                if (eval._move == [-1, -1]):
+                    maxEval._move = [-1, -1]
+                    print("1337")
+                else:
+                    maxEval._move = position
                 maxEval._value = eval._value
-
 
             alpha = max(alpha, eval._value)
             if beta <= alpha:
-
                 break
         return maxEval
 
@@ -241,7 +292,6 @@ def minimax(my_positions, opponent_positions, last_opponents_move, depth, alpha,
 
             beta = min(beta, eval._value)
             if beta <= alpha:
-
                 break
         return minEval
 
