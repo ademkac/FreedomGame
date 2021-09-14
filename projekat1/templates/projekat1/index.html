@@ -171,16 +171,27 @@ var lista = document.getElementById("listaPoteza");
 cnv.addEventListener('click', on_canvas_click, false);
 
 function saljeZahtev(){
+
+        let indX, indY
      $.ajax(
                 {
                     type: "GET",
                     url: 'sendstate2',
                     data:{
-                        "comp1ORcomp2": playersTurn?1:2 
+                        "comp1ORcomp2": playersTurn?1:2,
+                        "indexOfX": indX,
+                        "indexOfY": indY,
+                        "poteziBelogIgraca": poteziBelogIgraca,
+                        "poteziCrnogIgraca": poteziCrnogIgraca
                     },
                     dataType: "json",
                     success: (data)=>{
-                        
+                        indX = data.x;
+                        indY = data.y;
+                        playersTurn?poteziBelogIgraca.push(indX):poteziCrnogIgraca.push(indX);
+                        playersTurn?poteziBelogIgraca.push(indY):poteziCrnogIgraca.push(indY)
+                        console.warn("potezibelog: "+poteziBelogIgraca)
+                        console.warn("potezicrnog: "+poteziCrnogIgraca)
                         ctx.fillStyle = playersTurn?"white":"black";
                         ctx.beginPath();
                         ctx.arc(data.x * 60 + 30, data.y * 60 +30, 30, 0, 2 * Math.PI, false);
@@ -228,16 +239,18 @@ function on_canvas_click(ev){
                 //izbacuje potez koji je odigran iz gamestate
                 squares[indexOfX].splice(indexOfY, 1);
 
+                
+                ctx.fillStyle = playersTurn?"white":"black";
+                ctx.beginPath();
+                ctx.arc(indexOfX * 60 + 30, indexOfY * 60 +30, 30, 0, 2 * Math.PI, false);
+                ctx.fill();
+
                 //ubacuje u niz odigrane poteze od strane oba igraca
                 odigraniPotezi.push(""+indexOfX+indexOfY);
 
                 //zauzeta polja tj. polja koja su vec popunjena
                 zauzetaPolja.push(""+indexOfX+indexOfY);
                 niz1 = odigraniPotezi.reverse();
-                ctx.fillStyle = playersTurn?"white":"black";
-                ctx.beginPath();
-                ctx.arc(indexOfX * 60 + 30, indexOfY * 60 +30, 30, 0, 2 * Math.PI, false);
-                ctx.fill();
 
                 if(playersTurn){
                     poteziBelogIgraca.push(indexOfX);
@@ -258,6 +271,12 @@ function on_canvas_click(ev){
                     //izbacuje potez koji je odigran iz gamestate
                 squares[indexOfX].splice(indexOfY, 1);
 
+                //crta figuru na tabli
+                ctx.fillStyle = playersTurn?"white":"black"; 
+                ctx.beginPath();
+                ctx.arc(indexOfX * 60 + 30, indexOfY * 60 +30, 30, 0, 2 * Math.PI, false);
+                ctx.fill();
+
                 //ubacuje u niz odigrane poteze od strane oba igraca
                 odigraniPotezi.push(""+indexOfX+indexOfY);
 
@@ -265,15 +284,10 @@ function on_canvas_click(ev){
                 zauzetaPolja.push(""+indexOfX+indexOfY);
                 niz1 = odigraniPotezi.reverse();
 
-                //crta figuru na tabli
-                ctx.fillStyle = playersTurn?"white":"black"; 
-                ctx.beginPath();
-                ctx.arc(indexOfX * 60 + 30, indexOfY * 60 +30, 30, 0, 2 * Math.PI, false);
-                ctx.fill();
-
                 lista.innerHTML += playersTurn?"Beli igrac odigrao potez na kordinatama: x= "+indexOfX+" i y= "+indexOfY+"<br>"
                 :"Crni igrac odigrao potez na kordinatama: x= "+indexOfX+" i y= "+indexOfY+"<br>"
 
+                 
                 }else{
                     alert("Molimo vas odigrajte figuru pored vaseg protivnika.")
                     return;
@@ -283,21 +297,12 @@ function on_canvas_click(ev){
 
         }
         playersTurn = !playersTurn  // ukoliko igraju igrac protiv igraca
-
         
-         if(odigraniPotezi.length == 100){
+        
             
-           //<br> Pobednik je "+scoreComp>scorePlay?"crni igrac":"beli igrac"
-            alert("Kraj igre")
-            if(confirm("Press a button")){
-                startNewGame()
-            }else{
-                console.log("kliknuo si cancel");
-                return
-            }
-            setTimeout( alert("Zelite da zapocnete novu igru?"), 1000);
-           
-        } 
+        
+        
+        
 
     }else if(vrstaIgre=="cvsc"){
        console.log("igraju kompjuteri")
