@@ -27,7 +27,7 @@
             </div>
         </div>
         <div id="izbor" style="margin-left: 50px; margin-top: 60px; text-align: center; float: left;">
-            <button style="background-color: #e3900b; display: block; color: aliceblue; height: 30px; margin-left: 60px; " onclick="startNewGame()">Nova igra</button>
+            <button id="novaIgra" style="background-color: #e3900b; display: block; color: aliceblue; height: 30px; margin-left: 60px; " onclick="startNewGame()">Nova igra</button>
               <h3>Molimo vas odaberite</h3>
               <input type="radio"  name="nacinIgre" value="ivsi" style="float: left;" checked="checked">
               <label for="ivsi">Igrac protiv igraca</label><br>
@@ -60,14 +60,8 @@
     elemTop = cnv.offsetTop;
     var ctx = cnv.getContext("2d");
 
-
-    let TEXT_COMP = "Player 2";
-    let TEXT_PLAY = "Player 1";
-    const TEXT_TIE = "NERESENO";
-    const TEXT_WIN = "POBEDA";
-
 //Game Variables
-var scoreComp, scorePlay, playersTurn, currentCells, dozvoljeniPotezi, vrstaIgre
+var scoreComp, scorePlay, playersTurn, dozvoljeniPotezi, vrstaIgre
 var squares = [];
 var odigraniPotezi = [];
 var zauzetaPolja = [];
@@ -78,6 +72,8 @@ var poljaPoIvicama = [10, 20, 30, 40, 50, 60, 70, 80, 01, 02, 03, 04, 05, 06, 07
 var coskovi = [00, 90, 09, 99];
 var poteziBelogIgraca = [];
 var poteziCrnogIgraca = []
+var clicked = false;
+let indX, indY
 
 for(let i=0; i<10; i++){
     squares[i] = []
@@ -107,7 +103,7 @@ var lista = document.getElementById("listaPoteza");
 
  function startNewGame(){
     
-
+    clicked = true
      squares = [];
      odigraniPotezi = [];
      zauzetaPolja = [];
@@ -147,23 +143,6 @@ var lista = document.getElementById("listaPoteza");
        var divButton = document.getElementById("comp");
        divButton.appendChild(button);
     }
-    ////////////////////////ajax//////////////////////////////
-     /* $.ajax(
-                {
-                    type: "GET",
-                    url: 'sendstate1',
-                    data:{
-                        "vrstaIgre": vrstaIgre
-                    },
-                    dataType: "json",
-                    success: (data)=>{
-                        console.log(data.uspesno)
-                    },
-                    error: ()=>{
-                        alert("Greska u slanju")
-                    }
-                }
-            )  */
 
 } 
 
@@ -172,7 +151,6 @@ cnv.addEventListener('click', on_canvas_click, false);
 
 function saljeZahtev(){
 
-        let indX, indY
      $.ajax(
                 {
                     type: "GET",
@@ -188,6 +166,8 @@ function saljeZahtev(){
                     success: (data)=>{
                         indX = data.x;
                         indY = data.y;
+                        console.log("indX: "+indX)
+                        console.log("indy: "+indY)
                         playersTurn?poteziBelogIgraca.push(indX):poteziCrnogIgraca.push(indX);
                         playersTurn?poteziBelogIgraca.push(indY):poteziCrnogIgraca.push(indY)
                         console.warn("potezibelog: "+poteziBelogIgraca)
@@ -211,6 +191,8 @@ function saljeZahtev(){
 
 
 function on_canvas_click(ev){
+   if(clicked){
+    
     if(vrstaIgre == "ivsi"){
         var x = ev.pageX - cnv.offsetLeft;
         var y = ev.pageY - cnv.offsetTop;
@@ -780,7 +762,11 @@ function on_canvas_click(ev){
     }
 
         }
-    }   
+    } 
+}else{
+        alert("klikni nova igra dugme")
+        return
+    }  
 }
 
 
