@@ -126,8 +126,8 @@ def sendstate2(request):
 
         if len(my_positions) == 0:
             data = {
-                'x': 0,#random.randint(0, 9),
-                'y': 1#random.randint(0, 9)
+                'x': random.randint(0, 9),
+                'y': random.randint(0, 9)
             }
             return JsonResponse(data)
 
