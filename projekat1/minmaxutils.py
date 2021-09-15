@@ -260,19 +260,20 @@ def minimax(my_positions, opponent_positions, last_opponents_move, depth, alpha,
         positions = generate_possible_moves(my_positions + opponent_positions, last_opponents_move)
         for position in positions:
             eval = minimax(opponent_positions, my_positions + [position], position, depth - 1, alpha, beta, False)
-            if (len(my_positions) + len(opponent_positions)) == 99:
-                if (heuristic(opponent_positions, my_positions) > eval._value):
-                    eval._move = [-1, -1]
-                    eval._value = heuristic(opponent_positions, my_positions)
-                    print("1338")
-
             if eval._value > maxEval._value:
-                if (eval._move == [-1, -1]):
-                    maxEval._move = [-1, -1]
-                    print("1337")
+                if (len(my_positions) + len(opponent_positions)) == 99:
+                    if (heuristic(opponent_positions, my_positions) > heuristic(opponent_positions, my_positions+positions)):#eval._value):
+                        eval._move = [-1, -1]
+                        eval._value = heuristic(opponent_positions, my_positions)
+
+                        maxEval._move = [-1, -1]
+                        maxEval._value = heuristic(opponent_positions, my_positions)
+                    else:
+                        maxEval._move = position
+                        maxEval._value = eval._value
                 else:
                     maxEval._move = position
-                maxEval._value = eval._value
+                    maxEval._value = eval._value
 
             alpha = max(alpha, eval._value)
             if beta <= alpha:
