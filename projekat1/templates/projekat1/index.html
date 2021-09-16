@@ -44,7 +44,9 @@
 
             <h3 style="text-align: center; margin-top: 30px;">Skor</h3>
             <p style="display: inline-block; float: left; color: #e3900b;">Beli igrac</p><p style="display: inline-block; float: right; color: #e3900b;">Crni igrac</p><br>
-            <p id="skorBeli" style="display: inline-block; float: left; margin-top: 50px; margin-left: 0; font-size: 30px;"></p><p id="skorCrni" style="display: inline-block; margin-top: 50px; float: right; margin-left: 0; font-size: 30px;"></p>
+            <p id="skorBeli" style="display: inline-block; float: left; margin-top: 50px; margin-left: 0; font-size: 30px;">0</p><p id="skorCrni" style="display: inline-block; margin-top: 50px; float: right; margin-left: 0; font-size: 30px;">0</p>
+            <h3 id="rezultat" ></h3>
+            <h3 id="kraj"></h3>
             <div id="comp">
 
             </div>
@@ -61,7 +63,7 @@
     var ctx = cnv.getContext("2d");
 
 //Game Variables
-var scoreComp, scorePlay, playersTurn, dozvoljeniPotezi, vrstaIgre
+var playersTurn, dozvoljeniPotezi, vrstaIgre, krajIgre
 var squares = [];
 var odigraniPotezi = [];
 var zauzetaPolja = [];
@@ -72,8 +74,17 @@ var poljaPoIvicama = [10, 20, 30, 40, 50, 60, 70, 80, 01, 02, 03, 04, 05, 06, 07
 var coskovi = [00, 90, 09, 99];
 var poteziBelogIgraca = [];
 var poteziCrnogIgraca = []
+var beliIgracPotezi = [];
+var crniIgracPotezi = []
 var clicked = false;
+var clickedSledeciPotez = false;
 let indX, indY
+ var skorBel = document.getElementById('skorBeli')
+var skorCr = document.getElementById('skorCrni') 
+var rezultat = document.getElementById('rezultat')
+var kraj = document.getElementById("kraj")
+var number1 = skorBel.innerHTML;
+var number2 = skorCr.innerHTML
 
 for(let i=0; i<10; i++){
     squares[i] = []
@@ -103,15 +114,21 @@ var lista = document.getElementById("listaPoteza");
 
  function startNewGame(){
     
-    clicked = true
      squares = [];
      odigraniPotezi = [];
      zauzetaPolja = [];
      niz1 = [];
      dozvoljeniPotezi = [];
-
+     beliIgracPotezi = []
      poteziBelogIgraca = [];
-     poteziCrnogIgraca = []
+     poteziCrnogIgraca = [];
+     skorBel.innerHTML = 0;
+     skorCr.innerHTML = 0;
+     number2 = 0;
+     number1 = 0;
+     krajIgre = false;
+     rezultat.innerHTML = ''
+     kraj.innerHTML = ''
 
     for(let i=0; i<10; i++){
         squares[i] = []
@@ -130,19 +147,27 @@ var lista = document.getElementById("listaPoteza");
         if(radio[i].checked)
         vrstaIgre = radio[i].value;
     }
-    var skorBel = document.getElementById('skorBeli')
-    var skorCr = document.getElementById('skorCrni')
 
-    skorBel.innerHTML = 0
-    skorCr.innerHTML = 0
-
-    if(vrstaIgre == "cvsc"){
-        var button =  document.createElement("button");
-       button.innerHTML = "Sledeci potez";
-       button.onclick = saljeZahtev
-       var divButton = document.getElementById("comp");
-       divButton.appendChild(button);
+    
+        if(vrstaIgre == "cvsc"){
+            if(!clicked){
+            var button =  document.createElement("button");
+        button.innerHTML = "Sledeci potez";
+        button.onclick = saljeZahtev
+        var divButton = document.getElementById("comp");
+        divButton.appendChild(button);
+        button.setAttribute("id", "sledeci")
+        }else{
+            return
+        }
+    }else{
+        if(document.getElementById("sledeci") != null){
+            var btn = document.getElementById("sledeci")
+            btn.style.display = "none"
+        } 
     }
+    clicked = true
+    
 
 } 
 
@@ -150,7 +175,9 @@ var lista = document.getElementById("listaPoteza");
 cnv.addEventListener('click', on_canvas_click, false);
 
 function saljeZahtev(){
-
+        var btnSledeci = document.getElementById("sledeci");
+            btnSledeci.disabled = true
+        
      $.ajax(
                 {
                     type: "GET",
@@ -170,15 +197,32 @@ function saljeZahtev(){
                         console.log("indy: "+indY)
                         playersTurn?poteziBelogIgraca.push(indX):poteziCrnogIgraca.push(indX);
                         playersTurn?poteziBelogIgraca.push(indY):poteziCrnogIgraca.push(indY)
-                        console.warn("potezibelog: "+poteziBelogIgraca)
-                        console.warn("potezicrnog: "+poteziCrnogIgraca)
+                        console.warn("potezibelog: "+poteziBelogIgraca.length)
+                        console.warn("potezicrnog: "+poteziCrnogIgraca.length)
                         ctx.fillStyle = playersTurn?"white":"black";
                         ctx.beginPath();
                         ctx.arc(data.x * 60 + 30, data.y * 60 +30, 30, 0, 2 * Math.PI, false);
                         ctx.fill();
                         lista.innerHTML += playersTurn?"Beli igrac odigrao potez na kordinatama: x= "+data.x+" i y= "+data.y+"<br>"
                                             :"Crni igrac odigrao potez na kordinatama: x= "+data.x+" i y= "+data.y+"<br>"                        
-                        playersTurn = !playersTurn
+                        playersTurn = !playersTurn;
+                        btnSledeci.disabled = false
+                        if(poteziCrnogIgraca.length == 100  ){
+                            krajIgre = true
+                        }
+
+                        if(krajIgre){
+                            checkHorizontally(poteziBelogIgraca)
+                            checkVertically(poteziBelogIgraca)
+                            checkHorizontally(poteziCrnogIgraca)
+                            checkVertically(poteziCrnogIgraca)
+                             checkDiagonally(poteziBelogIgraca);
+                            checkDiagonally(poteziCrnogIgraca) 
+                            skorBel.innerHTML = number1
+                            skorCr.innerHTML = number2
+                            rezultat.innerHTML = number1>number2?"Pobednik je beli igrac!": number1==number2? "Nereseno!": "Pobednik je crni igrac!"
+                            kraj.innerHTML = data.x == -1? "Crni igrac je odlucio da ne igra poslednji potez!":"Kraj igre!"
+                        }
                     },
                     error: ()=>{
                         alert("Greska u slanju")
@@ -191,7 +235,7 @@ function saljeZahtev(){
 
 
 function on_canvas_click(ev){
-   if(clicked){
+   if(clicked && !krajIgre){
     
     if(vrstaIgre == "ivsi"){
         var x = ev.pageX - cnv.offsetLeft;
@@ -229,6 +273,7 @@ function on_canvas_click(ev){
 
                 //ubacuje u niz odigrane poteze od strane oba igraca
                 odigraniPotezi.push(""+indexOfX+indexOfY);
+                console.log("odigraniPotezi duzina: "+odigraniPotezi.length)
 
                 //zauzeta polja tj. polja koja su vec popunjena
                 zauzetaPolja.push(""+indexOfX+indexOfY);
@@ -236,16 +281,19 @@ function on_canvas_click(ev){
 
                 if(playersTurn){
                     poteziBelogIgraca.push(indexOfX);
-                    poteziBelogIgraca.push(indexOfY)
+                    poteziBelogIgraca.push(indexOfY) 
                 }else{
-                    poteziCrnogIgraca.push(indexOfX);
-                    poteziCrnogIgraca.push(indexOfY);
+                     poteziCrnogIgraca.push(indexOfX);
+                    poteziCrnogIgraca.push(indexOfY); 
                 }
 
                 //ubacujem u listu poteza tekst koji igrac i na koje polje je odigrao potez
                 lista.innerHTML += playersTurn?"Beli igrac odigrao potez na kordinatama: x= "+indexOfX+" i y= "+indexOfY+"<br>"
                                             :"Crni igrac odigrao potez na kordinatama: x= "+indexOfX+" i y= "+indexOfY+"<br>"
     
+                    if(odigraniPotezi.length == 100){
+                        krajIgre = true
+                    }
              
                 }else{
                 //proverava da li je zadnji potez ima 3 suseda ili 5 suseda ili 8 suseda
@@ -261,15 +309,27 @@ function on_canvas_click(ev){
 
                 //ubacuje u niz odigrane poteze od strane oba igraca
                 odigraniPotezi.push(""+indexOfX+indexOfY);
+                console.log("odigraniPotezi duzina: "+odigraniPotezi.length)
 
                 //zauzeta polja tj. polja koja su vec popunjena
                 zauzetaPolja.push(""+indexOfX+indexOfY);
                 niz1 = odigraniPotezi.reverse();
 
+                if(playersTurn){
+                    poteziBelogIgraca.push(indexOfX);
+                    poteziBelogIgraca.push(indexOfY) 
+                }else{
+                    poteziCrnogIgraca.push(indexOfX);
+                    poteziCrnogIgraca.push(indexOfY); 
+                }
+
                 lista.innerHTML += playersTurn?"Beli igrac odigrao potez na kordinatama: x= "+indexOfX+" i y= "+indexOfY+"<br>"
                 :"Crni igrac odigrao potez na kordinatama: x= "+indexOfX+" i y= "+indexOfY+"<br>"
 
-                 
+                if(odigraniPotezi.length == 100){
+                    krajIgre = true
+                } 
+
                 }else{
                     alert("Molimo vas odigrajte figuru pored vaseg protivnika.")
                     return;
@@ -280,14 +340,25 @@ function on_canvas_click(ev){
         }
         playersTurn = !playersTurn  // ukoliko igraju igrac protiv igraca
         
-        
+         if(krajIgre ){
+            checkHorizontally(poteziBelogIgraca)
+            checkVertically(poteziBelogIgraca)
+            checkDiagonally(poteziBelogIgraca)
+            checkHorizontally(poteziCrnogIgraca)
+            checkVertically(poteziCrnogIgraca)
+            checkDiagonally(poteziCrnogIgraca) 
+            skorBel.innerHTML = number1
+            skorCr.innerHTML = number2
+            rezultat.innerHTML = number1>number2?"Pobednik je beli igrac!": number1==number2? "Nereseno!": "Pobednik je crni igrac!"
+            kraj.innerHTML = "Kraj igre!"
+        } 
             
         
         
         
 
     }else if(vrstaIgre=="cvsc"){
-       console.log("igraju kompjuteri")
+       alert("igraju kompjuteri")
     }
     else{
         //////ovde igrac protiv kompjutera
@@ -343,6 +414,9 @@ function on_canvas_click(ev){
 
              lista.innerHTML += "Beli igrac odigrao potez na kordinatama: x= "+indexOfX+" i y= "+indexOfY+"<br>"
            
+             if(odigraniPotezi.length == 100){
+                    krajIgre = true
+                }
             
              /////////////////AJAX///////////////////////
              $.ajax(
@@ -372,6 +446,21 @@ function on_canvas_click(ev){
                         console.log("poslednji potez crnog igraca: "+data.x+", "+data.y)
                         console.log("potezi crnog igraca: "+poteziCrnogIgraca)
                         lista.innerHTML += "Crni igrac odigrao potez na kordinatama: x= "+data.x+" i y= "+data.y+"<br>"
+                        if(odigraniPotezi.length == 100){
+                            krajIgre = true
+                        }
+                        if(krajIgre){
+                            checkHorizontally(poteziBelogIgraca)
+                            checkVertically(poteziBelogIgraca)
+                            checkHorizontally(poteziCrnogIgraca)
+                            checkVertically(poteziCrnogIgraca)
+                             checkDiagonally(poteziBelogIgraca);
+                            checkDiagonally(poteziCrnogIgraca) 
+                            skorBel.innerHTML = number1
+                            skorCr.innerHTML = number2
+                            rezultat.innerHTML = number1>number2?"Pobednik je beli igrac!": number1==number2? "Nereseno!": "Pobednik je crni igrac!"
+                            kraj.innerHTML = data.x == -1? "Crni igrac je odlucio da ne igra poslednji potez!":"Kraj igre!"
+                        }
                     },
                     error: ()=>{
                         alert("Greska u slanju")
@@ -432,6 +521,21 @@ function on_canvas_click(ev){
                         console.log("poslednji potez crnog igraca: "+data.x+", "+data.y)
                         console.log("potezi crnog igraca: "+poteziCrnogIgraca)
                         lista.innerHTML += "Crni igrac odigrao potez na kordinatama: x= "+data.x+" i y= "+data.y+"<br>"
+                        if(odigraniPotezi.length == 100){
+                            krajIgre = true
+                        }
+                        if(krajIgre){
+                            checkHorizontally(poteziBelogIgraca)
+                            checkVertically(poteziBelogIgraca)
+                            checkHorizontally(poteziCrnogIgraca)
+                            checkVertically(poteziCrnogIgraca)
+                             checkDiagonally(poteziBelogIgraca);
+                            checkDiagonally(poteziCrnogIgraca) 
+                            skorBel.innerHTML = number1
+                            skorCr.innerHTML = number2
+                            rezultat.innerHTML = number1>number2?"Pobednik je beli igrac!": number1==number2? "Nereseno!": "Pobednik je crni igrac!"
+                            kraj.innerHTML = data.x == -1? "Crni igrac je odlucio da ne igra poslednji potez!":"Kraj igre!"
+                        }
                     },
                     error: ()=>{
                         alert("Greska u slanju")
@@ -528,6 +632,22 @@ function on_canvas_click(ev){
                         console.log("poslednji potez crnog igraca: "+data.x+", "+data.y)
                         console.log("potezi crnog igraca: "+poteziCrnogIgraca)
                         lista.innerHTML += "Crni igrac odigrao potez na kordinatama: x= "+data.x+" i y= "+data.y+"<br>"
+                        if(odigraniPotezi.length == 100  ){
+                            krajIgre = true
+                        }
+
+                        if(krajIgre){
+                            checkHorizontally(poteziBelogIgraca)
+                            checkVertically(poteziBelogIgraca)
+                            checkHorizontally(poteziCrnogIgraca)
+                            checkVertically(poteziCrnogIgraca)
+                            checkDiagonally(poteziBelogIgraca);
+                            checkDiagonally(poteziCrnogIgraca) 
+                            skorBel.innerHTML = number1
+                            skorCr.innerHTML = number2
+                            rezultat.innerHTML = number1>number2?"Pobednik je beli igrac!": number1==number2? "Nereseno!": "Pobednik je crni igrac!"
+                            kraj.innerHTML = data.x == -1? "Crni igrac je odlucio da ne igra poslednji potez!":"Kraj igre!"
+                        }
                     },
                     error: ()=>{
                         alert("Greska u slanju")
@@ -588,6 +708,22 @@ function on_canvas_click(ev){
                         console.log("poslednji potez crnog igraca: "+data.x+", "+data.y)
                         console.log("potezi crnog igraca: "+poteziCrnogIgraca)
                         lista.innerHTML += "Crni igrac odigrao potez na kordinatama: x= "+data.x+" i y= "+data.y+"<br>"
+                        if(odigraniPotezi.length == 100  ){
+                            krajIgre = true
+                        }
+
+                        if(krajIgre){
+                            checkHorizontally(poteziBelogIgraca)
+                            checkVertically(poteziBelogIgraca)
+                            checkHorizontally(poteziCrnogIgraca)
+                            checkVertically(poteziCrnogIgraca)
+                            checkDiagonally(poteziBelogIgraca);
+                            checkDiagonally(poteziCrnogIgraca) 
+                            skorBel.innerHTML = number1
+                            skorCr.innerHTML = number2
+                            rezultat.innerHTML = number1>number2?"Pobednik je beli igrac!": number1==number2? "Nereseno!": "Pobednik je crni igrac!"
+                            kraj.innerHTML = data.x == -1? "Crni igrac je odlucio da ne igra poslednji potez!":"Kraj igre!"
+                        }
                     },
                     error: ()=>{
                         alert("Greska u slanju")
@@ -651,8 +787,6 @@ function on_canvas_click(ev){
             ctx.beginPath();
             ctx.arc(indexOfX * 60 + 30, indexOfY * 60 +30, 30, 0, 2 * Math.PI, false);
             ctx.fill();
-            poteziBelogIgraca.push(indexOfX);
-            poteziBelogIgraca.push(indexOfY);
 
             console.log("poslednji potez belog igraca: "+indexOfX+", "+indexOfY)
             //ubacujem u listu poteza tekst koji igrac i na koje polje je odigrao potez
@@ -688,6 +822,22 @@ function on_canvas_click(ev){
                         console.log("poslednji potez crnog igraca: "+data.x+", "+data.y)
                         console.log("potezi crnog igraca: "+poteziCrnogIgraca)
                         lista.innerHTML += "Crni igrac odigrao potez na kordinatama: x= "+data.x+" i y= "+data.y+"<br>"
+                        if(odigraniPotezi.length == 100  ){
+                            krajIgre = true
+                        }
+
+                        if(krajIgre){
+                            checkHorizontally(poteziBelogIgraca)
+                            checkVertically(poteziBelogIgraca)
+                            checkHorizontally(poteziCrnogIgraca)
+                            checkVertically(poteziCrnogIgraca)
+                             checkDiagonally(poteziBelogIgraca);
+                            checkDiagonally(poteziCrnogIgraca) 
+                            skorBel.innerHTML = number1
+                            skorCr.innerHTML = number2
+                            rezultat.innerHTML = number1>number2?"Pobednik je beli igrac!": number1==number2? "Nereseno!": "Pobednik je crni igrac!"
+                            kraj.innerHTML = data.x == -1? "Crni igrac je odlucio da ne igra poslednji potez!":"Kraj igre!"
+                        }
                     },
                     error: ()=>{
                         alert("Greska u slanju")
@@ -748,6 +898,22 @@ function on_canvas_click(ev){
                         console.log("poslednji potez crnog igraca: "+data.x+", "+data.y)
                         console.log("potezi crnog igraca: "+poteziCrnogIgraca)
                         lista.innerHTML += "Crni igrac odigrao potez na kordinatama: x= "+data.x+" i y= "+data.y+"<br>"
+                        if(poteziCrnogIgraca.length == 100  ){
+                            krajIgre = true
+                        }
+
+                        if(krajIgre){
+                            checkHorizontally(poteziBelogIgraca)
+                            checkVertically(poteziBelogIgraca)
+                            checkHorizontally(poteziCrnogIgraca)
+                            checkVertically(poteziCrnogIgraca)
+                             checkDiagonally(poteziBelogIgraca);
+                            checkDiagonally(poteziCrnogIgraca) 
+                            skorBel.innerHTML = number1
+                            skorCr.innerHTML = number2
+                            rezultat.innerHTML = number1>number2?"Pobednik je beli igrac!": number1==number2? "Nereseno!": "Pobednik je crni igrac!"
+                            kraj.innerHTML = data.x == -1? "Crni igrac je odlucio da ne igra poslednji potez!":"Kraj igre!"
+                        }
                     },
                     error: ()=>{
                         alert("Greska u slanju")
@@ -766,9 +932,437 @@ function on_canvas_click(ev){
         }
     } 
 }else{
-        alert("klikni nova igra dugme")
+        alert("Da bi ste zapoceli igru klikni na dugme 'Nova igra'!")
         return
     }  
+}
+
+function checkHorizontally(niz){
+    var red = []
+    var sortiranNiz = []
+    console.log("niz"+ niz)
+    for (let n = 0; n < 10; n++) {
+        red[n] = []
+        sortiranNiz[n] = []
+        for (let i = 1; i < niz.length; i+=2) {
+            if(niz[i] == n){
+                red[n].push(niz[i-1]) 
+                sortiranNiz[n] = red[n].sort()                  
+                }
+            }
+        }
+    for (let k = 0; k < 10; k++) {
+        for (let j = 0; j < sortiranNiz[k].length; j++) {
+                    if((sortiranNiz[k][j] == sortiranNiz[k][j+1]-1)
+                    && (sortiranNiz[k][j+1] == sortiranNiz[k][j+2]-1)
+                    && (sortiranNiz[k][j+2] == sortiranNiz[k][j+3]-1)){
+                    
+                        if(( sortiranNiz[k][j-1] == null ||  sortiranNiz[k][j-1] != sortiranNiz[k][j]-1)
+                            && ( sortiranNiz[k][j+4] == null ||  sortiranNiz[k][j+3] != sortiranNiz[k][j+4]-1)){
+                                if(niz == poteziBelogIgraca){
+                                    number1++;
+                                }else{
+                                    number2++;
+                                }
+                                
+                            }
+                    }
+            }
+    }
+}
+
+function checkVertically(niz){
+    let kolona = []
+    var sortiranNiz1 = []
+    for (let n = 0; n < 10; n++) {
+        kolona[n] = []
+        sortiranNiz1[n] = []
+        for (let i = 0; i < niz.length; i+=2) {
+            if(niz[i] == n){
+                kolona[n].push(niz[i+1]) 
+                sortiranNiz1[n] = kolona[n].sort()                  
+                }
+            }
+        
+        }
+    
+    for (let k = 0; k < 10; k++) {
+        for (let j = 0; j < sortiranNiz1[k].length; j++) {
+                    if((sortiranNiz1[k][j] == sortiranNiz1[k][j+1]-1)
+                    && (sortiranNiz1[k][j+1] == sortiranNiz1[k][j+2]-1)
+                    && (sortiranNiz1[k][j+2] == sortiranNiz1[k][j+3]-1)){
+                    
+                        if(( sortiranNiz1[k][j-1] == null ||  sortiranNiz1[k][j-1] != sortiranNiz1[k][j]-1)
+                            && ( sortiranNiz1[k][j+4] == null ||  sortiranNiz1[k][j+3] != sortiranNiz1[k][j+4]-1)){
+                                if(niz == poteziBelogIgraca){
+                                    number1++;
+                                }else{
+                                    number2++;
+                                }
+                                
+                            }
+                    }
+            }
+    }
+}
+
+
+
+function checkDiagonally(niz){
+    var glavnaD = []
+    var d1 = []
+    var d2 = []
+    var d3 = []
+    var d4 = []
+    var d5 = []
+    var d6 = []
+    var dx1 = []
+    var dx2 = []
+    var dx3 = []
+    var dx4 = []
+    var dx5 = []
+    var dx6 = []
+    var dy1 = []
+    var dy2 = []
+    var dy3 = []
+    var dy4 = []
+    var dy5 = []
+    var dy6 = []
+    var dy7 = []
+    var dy8 = []
+    var dy9 = []
+    var dy10 = []
+    var dy11 = []
+    var dy12 = []
+    var dy13 = []
+
+    for(let i = 0; i<niz.length; i+=2){
+        if(niz[i] == niz[i+1]){
+            glavnaD.push(niz[i]);
+            glavnaD.sort()
+        }
+    }
+    checkConsecutive(glavnaD, niz)
+
+    for(let i = 0; i<niz.length; i+=2){
+        if(niz[i] == niz[i+1]-1){
+            d1.push(niz[i]);
+            d1.sort()
+        }
+    }
+    checkConsecutive(d1, niz)
+
+    for(let i = 0; i<niz.length; i+=2){
+        if(niz[i] == niz[i+1]-2){
+            d2.push(niz[i]);
+            d2.sort()
+        }
+    }
+
+    checkConsecutive(d2, niz)
+
+    for(let i = 0; i<niz.length; i+=2){
+        if(niz[i] == niz[i+1]-3){
+            d3.push(niz[i]);
+            d3.sort()
+        }
+    }
+
+    checkConsecutive(d3, niz)
+
+    for(let i = 0; i<niz.length; i+=2){
+        if(niz[i] == niz[i+1]-4){
+            d4.push(niz[i]);
+            d4.sort()
+        }
+    }
+
+    checkConsecutive(d4, niz)
+
+    for(let i = 0; i<niz.length; i+=2){
+        if(niz[i] == niz[i+1]-5){
+            d5.push(niz[i]);
+            d5.sort()
+        }
+    }
+
+    checkConsecutive(d5, niz)
+
+    for(let i = 0; i<niz.length; i+=2){
+        if(niz[i] == niz[i+1]-6){
+            d6.push(niz[i]);
+            d6.sort()
+        }
+    }
+
+    checkConsecutive(d6, niz)
+
+    for(let i = 0; i<niz.length; i+=2){
+        if(niz[i]-1 == niz[i+1]){
+            dx1.push(niz[i]);
+            dx1.sort()
+        }
+    }
+
+    checkConsecutive(dx1, niz)
+
+    for(let i = 0; i<niz.length; i+=2){
+        if(niz[i]-2 == niz[i+1]){
+            dx2.push(niz[i]);
+            dx2.sort()
+        }
+    }
+
+    checkConsecutive(dx2, niz)
+
+    for(let i = 0; i<niz.length; i+=2){
+        if(niz[i]-3 == niz[i+1]){
+            dx3.push(niz[i]);
+            dx3.sort()
+        }
+    }
+
+    checkConsecutive(dx3, niz)
+
+    for(let i = 0; i<niz.length; i+=2){
+        if(niz[i]-4 == niz[i+1]){
+            dx4.push(niz[i]);
+            dx4.sort()
+        }
+    }
+
+    checkConsecutive(dx4, niz)
+
+    for(let i = 0; i<niz.length; i+=2){
+        if(niz[i]-5 == niz[i+1]){
+            dx5.push(niz[i]);
+            dx5.sort()
+        }
+    }
+
+    checkConsecutive(dx5, niz)
+
+    for(let i = 0; i<niz.length; i+=2){
+        if(niz[i]-6 == niz[i+1]){
+            dx6.push(niz[i]);
+            dx6.sort()
+        }
+    }
+
+    checkConsecutive(dx6, niz)
+
+    ////////////////////////////////////////////
+    for(let i = 0; i<niz.length; i+=2){
+        if((niz[i] == 9 && niz[i+1] == 0)||
+        (niz[i] == 8 && niz[i+1] == 1) ||
+        (niz[i] == 7 && niz[i+1] == 2) ||
+        (niz[i] == 6 && niz[i+1] == 3) ||
+        (niz[i] == 5 && niz[i+1] == 4) ||
+        (niz[i] == 4 && niz[i+1] == 5) ||
+        (niz[i] == 3 && niz[i+1] == 6) ||
+        (niz[i] == 2 && niz[i+1] == 7) ||
+        (niz[i] == 1 && niz[i+1] == 8) ||
+        (niz[i] == 0 && niz[i+1] == 9)){
+            dy1.push(niz[i]);
+            dy1.sort()
+        }
+    }
+
+    checkConsecutive(dy1, niz)
+
+    for(let i = 0; i<niz.length; i+=2){
+        if((niz[i] == 8 && niz[i+1] == 0)||
+        (niz[i] == 7 && niz[i+1] == 1) ||
+        (niz[i] == 6 && niz[i+1] == 2) ||
+        (niz[i] == 5 && niz[i+1] == 3) ||
+        (niz[i] == 4 && niz[i+1] == 4) ||
+        (niz[i] == 3 && niz[i+1] == 5) ||
+        (niz[i] == 2 && niz[i+1] == 6) ||
+        (niz[i] == 1 && niz[i+1] == 7) ||
+        (niz[i] == 0 && niz[i+1] == 8) ){
+            dy2.push(niz[i]);
+            dy2.sort()
+        }
+    }
+
+    checkConsecutive(dy2, niz)
+
+    for(let i = 0; i<niz.length; i+=2){
+        if((niz[i] == 7 && niz[i+1] == 0)||
+        (niz[i] == 6 && niz[i+1] == 1) ||
+        (niz[i] == 5 && niz[i+1] == 2) ||
+        (niz[i] == 4 && niz[i+1] == 3) ||
+        (niz[i] == 3 && niz[i+1] == 4) ||
+        (niz[i] == 2 && niz[i+1] == 5) ||
+        (niz[i] == 1 && niz[i+1] == 6) ||
+        (niz[i] == 0 && niz[i+1] == 7) ){
+            dy3.push(niz[i]);
+            dy3.sort()
+        }
+    }
+
+    checkConsecutive(dy3, niz)
+
+    for(let i = 0; i<niz.length; i+=2){
+        if((niz[i] == 6 && niz[i+1] == 0)||
+        (niz[i] == 5 && niz[i+1] == 1) ||
+        (niz[i] == 4 && niz[i+1] == 2) ||
+        (niz[i] == 3 && niz[i+1] == 3) ||
+        (niz[i] == 2 && niz[i+1] == 4) ||
+        (niz[i] == 1 && niz[i+1] == 5) ||
+        (niz[i] == 0 && niz[i+1] == 6) ){
+            dy4.push(niz[i]);
+            dy4.sort()
+        }
+    }
+
+    checkConsecutive(dy4, niz)
+
+    for(let i = 0; i<niz.length; i+=2){
+        if((niz[i] == 5 && niz[i+1] == 0)||
+        (niz[i] == 4 && niz[i+1] == 1) ||
+        (niz[i] == 3 && niz[i+1] == 2) ||
+        (niz[i] == 2 && niz[i+1] == 3) ||
+        (niz[i] == 1 && niz[i+1] == 4) ||
+        (niz[i] == 0 && niz[i+1] == 5) ){
+            dy5.push(niz[i]);
+            dy5.sort()
+        }
+    }
+
+    checkConsecutive(dy5, niz)
+
+    for(let i = 0; i<niz.length; i+=2){
+        if((niz[i] == 4 && niz[i+1] == 0)||
+        (niz[i] == 3 && niz[i+1] == 1) ||
+        (niz[i] == 2 && niz[i+1] == 2) ||
+        (niz[i] == 1 && niz[i+1] == 3) ||
+        (niz[i] == 0 && niz[i+1] == 4) ){
+            dy6.push(niz[i]);
+            dy6.sort()
+        }
+    }
+
+    checkConsecutive(dy6, niz)
+
+    for(let i = 0; i<niz.length; i+=2){
+        if((niz[i] == 3 && niz[i+1] == 0)||
+        (niz[i] == 2 && niz[i+1] == 1) ||
+        (niz[i] == 1 && niz[i+1] == 2) ||
+        (niz[i] == 0 && niz[i+1] == 3) ){
+            dy7.push(niz[i]);
+            dy7.sort()
+        }
+    }
+
+    checkConsecutive(dy7, niz)
+
+    for(let i = 0; i<niz.length; i+=2){
+        if((niz[i] == 9 && niz[i+1] == 1)||
+        (niz[i] == 8 && niz[i+1] == 2) ||
+        (niz[i] == 7 && niz[i+1] == 3) ||
+        (niz[i] == 6 && niz[i+1] == 4) ||
+        (niz[i] == 5 && niz[i+1] == 5) ||
+        (niz[i] == 4 && niz[i+1] == 6) ||
+        (niz[i] == 3 && niz[i+1] == 7) ||
+        (niz[i] == 2 && niz[i+1] == 8) ||
+        (niz[i] == 1 && niz[i+1] == 9) ){
+            dy8.push(niz[i]);
+            dy8.sort()
+        }
+    }
+
+    checkConsecutive(dy8, niz)
+
+    for(let i = 0; i<niz.length; i+=2){
+        if((niz[i] == 9 && niz[i+1] == 2)||
+        (niz[i] == 8 && niz[i+1] == 3) ||
+        (niz[i] == 7 && niz[i+1] == 4) ||
+        (niz[i] == 6 && niz[i+1] == 5) ||
+        (niz[i] == 5 && niz[i+1] == 6) ||
+        (niz[i] == 4 && niz[i+1] == 7) ||
+        (niz[i] == 3 && niz[i+1] == 8) ||
+        (niz[i] == 2 && niz[i+1] == 9) ){
+            dy9.push(niz[i]);
+            dy9.sort()
+        }
+    }
+
+    checkConsecutive(dy9, niz)
+
+    for(let i = 0; i<niz.length; i+=2){
+        if((niz[i] == 9 && niz[i+1] == 3)||
+        (niz[i] == 8 && niz[i+1] == 4) ||
+        (niz[i] == 7 && niz[i+1] == 5) ||
+        (niz[i] == 6 && niz[i+1] == 6) ||
+        (niz[i] == 5 && niz[i+1] == 7) ||
+        (niz[i] == 4 && niz[i+1] == 8) ||
+        (niz[i] == 3 && niz[i+1] == 9) ){
+            dy10.push(niz[i]);
+            dy10.sort()
+        }
+    }
+
+    checkConsecutive(dy10, niz)
+
+    for(let i = 0; i<niz.length; i+=2){
+        if((niz[i] == 9 && niz[i+1] == 4)||
+        (niz[i] == 8 && niz[i+1] == 5) ||
+        (niz[i] == 7 && niz[i+1] == 6) ||
+        (niz[i] == 6 && niz[i+1] == 7) ||
+        (niz[i] == 5 && niz[i+1] == 8) ||
+        (niz[i] == 4 && niz[i+1] == 9) ){
+            dy11.push(niz[i]);
+            dy11.sort()
+        }
+    }
+
+    checkConsecutive(dy11, niz)
+
+    for(let i = 0; i<niz.length; i+=2){
+        if((niz[i] == 9 && niz[i+1] == 5)||
+        (niz[i] == 8 && niz[i+1] == 6) ||
+        (niz[i] == 7 && niz[i+1] == 7) ||
+        (niz[i] == 6 && niz[i+1] == 8) ||
+        (niz[i] == 5 && niz[i+1] == 9) ){
+            dy12.push(niz[i]);
+            dy12.sort()
+        }
+    }
+
+    checkConsecutive(dy12, niz)
+
+    for(let i = 0; i<niz.length; i+=2){
+        if((niz[i] == 9 && niz[i+1] == 6)||
+        (niz[i] == 8 && niz[i+1] == 7) ||
+        (niz[i] == 7 && niz[i+1] == 8) ||
+        (niz[i] == 6 && niz[i+1] == 9) ){
+            dy13.push(niz[i]);
+            dy13.sort()
+        }
+    }
+
+    checkConsecutive(dy13, niz)
+  
+}
+
+
+function checkConsecutive(niz, niz1){
+    for(let k = 0; k<niz.length; k++){
+        if((niz[k] == niz[k+1]-1)
+                    && (niz[k+1] == niz[k+2]-1)
+                    && (niz[k+2] == niz[k+3]-1)){
+                        if(( niz[k-1] == null ||  niz[k-1] != niz[k]-1)
+                            && ( niz[k+4] == null ||  niz[k+3] != niz[k+4]-1)){
+                                if(niz1 == poteziBelogIgraca){
+                                    number1++;
+                                }else{
+                                    number2++;
+                                }
+                            }
+                    }
+    }
+
 }
 
 
