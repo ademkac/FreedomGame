@@ -78,13 +78,15 @@ var beliIgracPotezi = [];
 var crniIgracPotezi = []
 var clicked = false;
 var clickedSledeciPotez = false;
+var proglasiKrajIgre = false;
 let indX, indY
  var skorBel = document.getElementById('skorBeli')
 var skorCr = document.getElementById('skorCrni') 
 var rezultat = document.getElementById('rezultat')
 var kraj = document.getElementById("kraj")
 var number1 = skorBel.innerHTML;
-var number2 = skorCr.innerHTML
+var number2 = skorCr.innerHTML;
+var blokSledeciDugme
 
 for(let i=0; i<10; i++){
     squares[i] = []
@@ -127,8 +129,10 @@ var lista = document.getElementById("listaPoteza");
      number2 = 0;
      number1 = 0;
      krajIgre = false;
+     proglasiKrajIgre = false
      rezultat.innerHTML = ''
      kraj.innerHTML = ''
+     blokSledeciDugme = true
 
     for(let i=0; i<10; i++){
         squares[i] = []
@@ -157,8 +161,9 @@ var lista = document.getElementById("listaPoteza");
         var divButton = document.getElementById("comp");
         divButton.appendChild(button);
         button.setAttribute("id", "sledeci")
+        blokSledeciDugme = false
         }else{
-            return
+                return 
         }
     }else{
         if(document.getElementById("sledeci") != null){
@@ -173,6 +178,27 @@ var lista = document.getElementById("listaPoteza");
 
 
 cnv.addEventListener('click', on_canvas_click, false);
+
+function krajIgreOdCrnog(){
+    console.log("kraj igre proglasen od strane crnog igraca")
+    krajIgre = true
+    if(krajIgre ){
+            checkHorizontally(poteziBelogIgraca)
+            checkVertically(poteziBelogIgraca)
+            checkDiagonally(poteziBelogIgraca)
+            checkHorizontally(poteziCrnogIgraca)
+            checkVertically(poteziCrnogIgraca)
+            checkDiagonally(poteziCrnogIgraca) 
+            if(document.getElementById("sledeci") != null){
+            var btn = document.getElementById("sledeci")
+            btn.style.display = "none"
+        }
+            skorBel.innerHTML = number1
+            skorCr.innerHTML = number2
+            rezultat.innerHTML = number1>number2?"Pobednik je beli igrac!": number1==number2? "Nereseno!": "Pobednik je crni igrac!"
+            kraj.innerHTML = "Kraj igre!"
+        }
+}
 
 function saljeZahtev(){
         var btnSledeci = document.getElementById("sledeci");
@@ -201,7 +227,7 @@ function saljeZahtev(){
                         console.warn("potezicrnog: "+poteziCrnogIgraca.length)
                         ctx.fillStyle = playersTurn?"white":"black";
                         ctx.beginPath();
-                        ctx.arc(data.x * 60 + 30, data.y * 60 +30, 30, 0, 2 * Math.PI, false);
+                        ctx.arc(data.x * 60 + 30, data.y * 60 +30, 25, 0, 2 * Math.PI, false);
                         ctx.fill();
                         lista.innerHTML += playersTurn?"Beli igrac odigrao potez na kordinatama: x= "+data.x+" i y= "+data.y+"<br>"
                                             :"Crni igrac odigrao potez na kordinatama: x= "+data.x+" i y= "+data.y+"<br>"                        
@@ -222,6 +248,8 @@ function saljeZahtev(){
                             skorCr.innerHTML = number2
                             rezultat.innerHTML = number1>number2?"Pobednik je beli igrac!": number1==number2? "Nereseno!": "Pobednik je crni igrac!"
                             kraj.innerHTML = data.x == -1? "Crni igrac je odlucio da ne igra poslednji potez!":"Kraj igre!"
+                            blokSledeciDugme = true
+                            btnSledeci.remove()
                         }
                     },
                     error: ()=>{
@@ -268,7 +296,7 @@ function on_canvas_click(ev){
                 
                 ctx.fillStyle = playersTurn?"white":"black";
                 ctx.beginPath();
-                ctx.arc(indexOfX * 60 + 30, indexOfY * 60 +30, 30, 0, 2 * Math.PI, false);
+                ctx.arc(indexOfX * 60 + 30, indexOfY * 60 +30, 25, 0, 2 * Math.PI, false);
                 ctx.fill();
 
                 //ubacuje u niz odigrane poteze od strane oba igraca
@@ -290,9 +318,12 @@ function on_canvas_click(ev){
                 //ubacujem u listu poteza tekst koji igrac i na koje polje je odigrao potez
                 lista.innerHTML += playersTurn?"Beli igrac odigrao potez na kordinatama: x= "+indexOfX+" i y= "+indexOfY+"<br>"
                                             :"Crni igrac odigrao potez na kordinatama: x= "+indexOfX+" i y= "+indexOfY+"<br>"
-    
+                    if(odigraniPotezi.length == 99){
+                        proglasiKrajIgre = true
+                    }
                     if(odigraniPotezi.length == 100){
                         krajIgre = true
+                        proglasiKrajIgre = false
                     }
              
                 }else{
@@ -304,7 +335,7 @@ function on_canvas_click(ev){
                 //crta figuru na tabli
                 ctx.fillStyle = playersTurn?"white":"black"; 
                 ctx.beginPath();
-                ctx.arc(indexOfX * 60 + 30, indexOfY * 60 +30, 30, 0, 2 * Math.PI, false);
+                ctx.arc(indexOfX * 60 + 30, indexOfY * 60 +30, 25, 0, 2 * Math.PI, false);
                 ctx.fill();
 
                 //ubacuje u niz odigrane poteze od strane oba igraca
@@ -328,7 +359,12 @@ function on_canvas_click(ev){
 
                 if(odigraniPotezi.length == 100){
                     krajIgre = true
-                } 
+                    proglasiKrajIgre = false
+                }
+                
+                if(odigraniPotezi.length == 99){
+                    proglasiKrajIgre = true
+                }
 
                 }else{
                     alert("Molimo vas odigrajte figuru pored vaseg protivnika.")
@@ -339,6 +375,16 @@ function on_canvas_click(ev){
 
         }
         playersTurn = !playersTurn  // ukoliko igraju igrac protiv igraca
+
+        if(proglasiKrajIgre){
+            var button =  document.createElement("button");
+            button.innerHTML = "Ne igram potez";
+            button.onclick = krajIgreOdCrnog
+            var divButton = document.getElementById("comp");
+            divButton.appendChild(button);
+            button.setAttribute("id", "sledeci")
+            
+        }
         
          if(krajIgre ){
             checkHorizontally(poteziBelogIgraca)
@@ -347,10 +393,15 @@ function on_canvas_click(ev){
             checkHorizontally(poteziCrnogIgraca)
             checkVertically(poteziCrnogIgraca)
             checkDiagonally(poteziCrnogIgraca) 
+            if(document.getElementById("sledeci") != null){
+            var btn = document.getElementById("sledeci")
+            btn.style.display = "none"
+        }
             skorBel.innerHTML = number1
             skorCr.innerHTML = number2
             rezultat.innerHTML = number1>number2?"Pobednik je beli igrac!": number1==number2? "Nereseno!": "Pobednik je crni igrac!"
             kraj.innerHTML = "Kraj igre!"
+
         } 
             
         
@@ -406,7 +457,7 @@ function on_canvas_click(ev){
             //crta figuru na tabli
             ctx.fillStyle = "white"
             ctx.beginPath();
-            ctx.arc(indexOfX * 60 + 30, indexOfY * 60 +30, 30, 0, 2 * Math.PI, false);
+            ctx.arc(indexOfX * 60 + 30, indexOfY * 60 +30, 25, 0, 2 * Math.PI, false);
             ctx.fill();
 
             console.log("poslednji potez belog igraca: "+indexOfX+", "+indexOfY)
@@ -436,7 +487,7 @@ function on_canvas_click(ev){
                             console.log(odigraniPotezi);
                             ctx.fillStyle = "black";
                             ctx.beginPath();
-                            ctx.arc(data.x * 60 + 30, data.y * 60 +30, 30, 0, 2 * Math.PI, false);
+                            ctx.arc(data.x * 60 + 30, data.y * 60 +30, 25, 0, 2 * Math.PI, false);
                             ctx.fill();
                             poteziCrnogIgraca.push(data.x);
                             poteziCrnogIgraca.push(data.y);
@@ -483,7 +534,7 @@ function on_canvas_click(ev){
             //crta figuru na tabli
             ctx.fillStyle = "white"
             ctx.beginPath();
-            ctx.arc(indexOfX * 60 + 30, indexOfY * 60 +30, 30, 0, 2 * Math.PI, false);
+            ctx.arc(indexOfX * 60 + 30, indexOfY * 60 +30, 25, 0, 2 * Math.PI, false);
             ctx.fill();
 
              //pamtim poteze i igraca koji odigrao potez
@@ -514,7 +565,7 @@ function on_canvas_click(ev){
                         niz1 = odigraniPotezi.reverse()
                         ctx.fillStyle = "black";
                         ctx.beginPath();
-                        ctx.arc(data.x * 60 + 30, data.y * 60 +30, 30, 0, 2 * Math.PI, false);
+                        ctx.arc(data.x * 60 + 30, data.y * 60 +30, 25, 0, 2 * Math.PI, false);
                         ctx.fill();
                         poteziCrnogIgraca.push(data.x);
                         poteziCrnogIgraca.push(data.y);
@@ -595,7 +646,7 @@ function on_canvas_click(ev){
             //crta figuru na tabli
             ctx.fillStyle = "white"
             ctx.beginPath();
-            ctx.arc(indexOfX * 60 + 30, indexOfY * 60 +30, 30, 0, 2 * Math.PI, false);
+            ctx.arc(indexOfX * 60 + 30, indexOfY * 60 +30, 25, 0, 2 * Math.PI, false);
             ctx.fill();
 
             console.log("poslednji potez belog igraca: "+indexOfX+", "+indexOfY)
@@ -625,7 +676,7 @@ function on_canvas_click(ev){
                         console.log(odigraniPotezi);
                         ctx.fillStyle = "black";
                         ctx.beginPath();
-                        ctx.arc(data.x * 60 + 30, data.y * 60 +30, 30, 0, 2 * Math.PI, false);
+                        ctx.arc(data.x * 60 + 30, data.y * 60 +30, 25, 0, 2 * Math.PI, false);
                         ctx.fill();
                         poteziCrnogIgraca.push(data.x);
                         poteziCrnogIgraca.push(data.y);
@@ -670,7 +721,7 @@ function on_canvas_click(ev){
             //crta figuru na tabli
             ctx.fillStyle = "white"
             ctx.beginPath();
-            ctx.arc(indexOfX * 60 + 30, indexOfY * 60 +30, 30, 0, 2 * Math.PI, false);
+            ctx.arc(indexOfX * 60 + 30, indexOfY * 60 +30, 25, 0, 2 * Math.PI, false);
             ctx.fill();
 
              //pamtim poteze i igraca koji odigrao potez
@@ -701,7 +752,7 @@ function on_canvas_click(ev){
                         niz1 = odigraniPotezi.reverse()
                         ctx.fillStyle = "black";
                         ctx.beginPath();
-                        ctx.arc(data.x * 60 + 30, data.y * 60 +30, 30, 0, 2 * Math.PI, false);
+                        ctx.arc(data.x * 60 + 30, data.y * 60 +30, 25, 0, 2 * Math.PI, false);
                         ctx.fill();
                         poteziCrnogIgraca.push(data.x);
                         poteziCrnogIgraca.push(data.y);
@@ -785,7 +836,7 @@ function on_canvas_click(ev){
             //crta figuru na tabli
             ctx.fillStyle = "white"
             ctx.beginPath();
-            ctx.arc(indexOfX * 60 + 30, indexOfY * 60 +30, 30, 0, 2 * Math.PI, false);
+            ctx.arc(indexOfX * 60 + 30, indexOfY * 60 +30, 25, 0, 2 * Math.PI, false);
             ctx.fill();
 
             console.log("poslednji potez belog igraca: "+indexOfX+", "+indexOfY)
@@ -815,7 +866,7 @@ function on_canvas_click(ev){
                         console.log(odigraniPotezi);
                         ctx.fillStyle = "black";
                         ctx.beginPath();
-                        ctx.arc(data.x * 60 + 30, data.y * 60 +30, 30, 0, 2 * Math.PI, false);
+                        ctx.arc(data.x * 60 + 30, data.y * 60 +30, 25, 0, 2 * Math.PI, false);
                         ctx.fill();
                         poteziCrnogIgraca.push(data.x);
                         poteziCrnogIgraca.push(data.y);
@@ -860,7 +911,7 @@ function on_canvas_click(ev){
             //crta figuru na tabli
             ctx.fillStyle = "white"
             ctx.beginPath();
-            ctx.arc(indexOfX * 60 + 30, indexOfY * 60 +30, 30, 0, 2 * Math.PI, false);
+            ctx.arc(indexOfX * 60 + 30, indexOfY * 60 +30, 25, 0, 2 * Math.PI, false);
             ctx.fill();
 
              //pamtim poteze i igraca koji odigrao potez
@@ -891,7 +942,7 @@ function on_canvas_click(ev){
                         niz1 = odigraniPotezi.reverse()
                         ctx.fillStyle = "black";
                         ctx.beginPath();
-                        ctx.arc(data.x * 60 + 30, data.y * 60 +30, 30, 0, 2 * Math.PI, false);
+                        ctx.arc(data.x * 60 + 30, data.y * 60 +30, 25, 0, 2 * Math.PI, false);
                         ctx.fill();
                         poteziCrnogIgraca.push(data.x);
                         poteziCrnogIgraca.push(data.y);
